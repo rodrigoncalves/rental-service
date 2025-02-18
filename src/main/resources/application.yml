@@ -1,0 +1,23 @@
+app:
+    jwt:
+        secret: ${JWT_SECRET:E*ek3W#ML#5ofnKVgQQ75%h8Ka8@&29!UuoWGy8w$T@ub8hGDqADBUoLj2jURypN}
+        expiration: ${JWT_EXPIRATION:86400}
+        issuer: api-property-rental
+    reseller:
+        default-credit: 10000000
+
+spring:
+    jpa:
+        hibernate:
+            ddl-auto: update
+            naming-strategy: org.hibernate.cfg.ImprovedNamingStrategy
+        database-platform: org.hibernate.dialect.H2Dialect
+        show-sql: ${SHOW_SQL:false}
+    datasource:
+        url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1
+        driverClassName: org.h2.Driver
+        username: sa
+        password:
+    h2.console.enabled: true
+
+logging.level.org.hibernate: ERROR
