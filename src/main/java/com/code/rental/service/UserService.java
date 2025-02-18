@@ -1,6 +1,8 @@
 package com.code.rental.service;
 
+import com.code.rental.controller.dto.request.LoginDTO;
 import com.code.rental.controller.dto.request.UserRequestDTO;
+import com.code.rental.controller.dto.response.LoginResponseDTO;
 import com.code.rental.domain.User;
 import com.code.rental.exception.BadRequestException;
 import com.code.rental.exception.ResourceNotFoundException;
@@ -16,6 +18,7 @@ import java.util.List;
 @Service
 public class UserService {
 
+    private final AuthService authService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,7 +40,7 @@ public class UserService {
     }
 
     @Transactional
-    public User createUser(final UserRequestDTO userDTO) {
+    public LoginResponseDTO createUser(final UserRequestDTO userDTO) {
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new BadRequestException("Email already exists: " + userDTO.getEmail());
         }
@@ -47,7 +50,15 @@ public class UserService {
                 .email(userDTO.getEmail())
                 .password(passwordEncoder.encode(userDTO.getPassword()))
                 .build();
-        return userRepository.save(user);
+        userRepository.save(user);
+
+        return authService.authenticate(LoginDTO.builder()
+                .email(user.getEmail())
+                .password(userDTO.getPassword())
+                .build());
     }
 
+    public LoginResponseDTO authenticate(final LoginDTO loginDTO) {
+        return authService.authenticate(loginDTO);
+    }
 }

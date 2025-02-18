@@ -3,10 +3,6 @@ package com.code.rental.controller;
 import com.code.rental.controller.dto.request.LoginDTO;
 import com.code.rental.controller.dto.request.UserRequestDTO;
 import com.code.rental.controller.dto.response.LoginResponseDTO;
-import com.code.rental.controller.dto.response.UserDTO;
-import com.code.rental.controller.mapper.UserMapper;
-import com.code.rental.domain.User;
-import com.code.rental.service.AuthService;
 import com.code.rental.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,23 +21,21 @@ import java.net.URI;
 @RestController
 public class AuthController {
 
-    private final AuthService authService;
     private final UserService userService;
-    private final UserMapper userMapper;
 
     @PostMapping(value = "/auth/signup", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<UserDTO> registerUser(@Valid @RequestBody UserRequestDTO userDTO) {
-        User user = userService.createUser(userDTO);
+    public ResponseEntity<LoginResponseDTO> registerUser(@Valid @RequestBody UserRequestDTO userDTO) {
+        LoginResponseDTO loginDTO = userService.createUser(userDTO);
 
         URI location = UriComponentsBuilder.fromPath("/users/{id}")
-                .buildAndExpand(user.getId()).toUri();
+                .buildAndExpand(loginDTO.getUserId()).toUri();
 
-        return ResponseEntity.created(location).body(userMapper.convertToDTO(user));
+        return ResponseEntity.created(location).body(loginDTO);
     }
 
     @PostMapping(value = "/auth/signin", produces = MediaType.APPLICATION_JSON_VALUE)
     public LoginResponseDTO authenticateUser(@Valid @RequestBody LoginDTO loginDTO) {
-        return authService.authenticate(loginDTO);
+        return userService.authenticate(loginDTO);
     }
 }
 
