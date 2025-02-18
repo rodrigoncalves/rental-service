@@ -1,5 +1,7 @@
-package com.code.rental.exception;
+package com.code.rental.exception.handler;
 
+import com.code.rental.exception.BadRequestException;
+import com.code.rental.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
