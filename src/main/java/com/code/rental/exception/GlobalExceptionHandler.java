@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
 
     // 400 Bad Request
     @ExceptionHandler(BadRequestException.class)
-    public ResponseEntity<Object> handleBadRequest(IllegalArgumentException ex, WebRequest request) {
+    public ResponseEntity<Object> handleBadRequest(BadRequestException ex, WebRequest request) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
