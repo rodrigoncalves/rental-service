@@ -13,13 +13,13 @@ import org.springframework.context.annotation.Bean;
 
 @RequiredArgsConstructor
 @SpringBootApplication
-public class RentalApplication {
+public class RentalServiceApplication {
 
     private final UserService userService;
     private final PropertyRepository propertyRepository;
 
     public static void main(String[] args) {
-        SpringApplication.run(RentalApplication.class, args);
+        SpringApplication.run(RentalServiceApplication.class, args);
     }
 
     @Bean
