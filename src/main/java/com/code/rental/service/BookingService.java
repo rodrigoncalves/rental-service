@@ -9,9 +9,9 @@ import com.code.rental.exception.ResourceNotFoundException;
 import com.code.rental.repository.BookingRepository;
 import com.code.rental.repository.PropertyRepository;
 import com.code.rental.security.jwt.JwtService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @RequiredArgsConstructor
 @Service
@@ -51,6 +51,7 @@ public class BookingService {
         return mapToDTO(savedBooking);
     }
 
+    @Transactional
     public BookingResponseDTO updateBooking(final Long id, final BookingRequestDTO bookingDTO) {
         final Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Booking.class, id));
@@ -69,9 +70,57 @@ public class BookingService {
         return mapToDTO(savedBooking);
     }
 
+    @Transactional(readOnly = true)
+    public BookingResponseDTO getBookingById(final Long id) {
+        final Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Booking.class, id));
+
+        return mapToDTO(booking);
+    }
+
+    @Transactional
+    public void cancelBooking(final Long id) {
+        final Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Booking.class, id));
+
+        if (!booking.getGuest().getId().equals(jwtService.getLoggedUser().getId())) {
+            throw new IllegalArgumentException("You can't cancel a booking that you didn't create");
+        }
+
+        booking.setStatus(BookingStatusEnum.CANCELED);
+    }
+
+    @Transactional
+    public void reactiveBooking(final Long id) {
+        final Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Booking.class, id));
+
+        if (!booking.getGuest().getId().equals(jwtService.getLoggedUser().getId())) {
+            throw new IllegalArgumentException("You can't reactive a booking that you didn't create");
+        }
+
+        final boolean hasConflictingBookings = bookingRepository.existsByPropertyAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndStatus(
+                booking.getProperty(), booking.getEndDate(), booking.getStartDate(), BookingStatusEnum.ACTIVE);
+
+        if (hasConflictingBookings) {
+            throw new IllegalArgumentException("Property is already booked for the selected dates");
+        }
+
+        booking.setStatus(BookingStatusEnum.ACTIVE);
+    }
+
+    @Transactional
+    public void delete(final Long id) {
+        if (!bookingRepository.existsById(id)) {
+            throw new ResourceNotFoundException(Booking.class, id);
+        }
+        bookingRepository.deleteById(id);
+    }
+
     private BookingResponseDTO mapToDTO(final Booking booking) {
         return BookingResponseDTO.builder()
                 .id(booking.getId())
+                .status(booking.getStatus())
                 .propertyId(booking.getProperty().getId())
                 .guestId(booking.getGuest().getId())
                 .guestName(booking.getGuestName())

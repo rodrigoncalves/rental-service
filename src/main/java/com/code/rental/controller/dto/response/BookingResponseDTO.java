@@ -1,5 +1,6 @@
 package com.code.rental.controller.dto.response;
 
+import com.code.rental.domain.enums.BookingStatusEnum;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -15,6 +16,7 @@ import java.time.LocalDate;
 public class BookingResponseDTO {
 
     private Long id;
+    private BookingStatusEnum status;
     private Long propertyId;
     private String guestName;
     private String guestEmail;
