@@ -1,6 +1,6 @@
 package com.code.rental.service;
 
-import com.code.rental.controller.dto.BlockDTO;
+import com.code.rental.controller.dto.request.BlockRequestDTO;
 import com.code.rental.controller.dto.response.BlockResponseDTO;
 import com.code.rental.domain.Block;
 import com.code.rental.domain.Property;
@@ -31,7 +31,7 @@ public class BlockService {
     }
 
     @Transactional
-    public BlockResponseDTO createBlock(final BlockDTO blockDTO) {
+    public BlockResponseDTO createBlock(final BlockRequestDTO blockDTO) {
         final Property property = propertyRepository.findById(blockDTO.getPropertyId())
                 .orElseThrow(() -> new IllegalArgumentException("Property not found with ID " + blockDTO.getPropertyId()));
 
@@ -55,7 +55,7 @@ public class BlockService {
     }
 
     @Transactional
-    public BlockResponseDTO updateBlock(final Long id, final BlockDTO blockDTO) {
+    public BlockResponseDTO updateBlock(final Long id, final BlockRequestDTO blockDTO) {
         final Block block = blockRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Block.class, id));
 

@@ -8,10 +8,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Constraint(validatedBy = DateRangeValidator.class)
+@Constraint(validatedBy = BookingDateRangeValidator.class)
 @Target({ ElementType.TYPE })
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidDateRange {
+public @interface BookingValidDateRange {
     String message() default "Start date must be before or the same day as end date";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

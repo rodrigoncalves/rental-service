@@ -13,4 +13,8 @@ public class LoginResponseDTO {
     private final String type = "Bearer";
     private String name;
     private String email;
+
+    public LoginResponseDTO(Long userId) {
+        this.userId = userId;
+    }
 }

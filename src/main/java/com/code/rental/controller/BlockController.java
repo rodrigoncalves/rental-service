@@ -1,6 +1,6 @@
 package com.code.rental.controller;
 
-import com.code.rental.controller.dto.BlockDTO;
+import com.code.rental.controller.dto.request.BlockRequestDTO;
 import com.code.rental.controller.dto.response.BlockResponseDTO;
 import com.code.rental.service.BlockService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,7 +33,7 @@ public class BlockController {
 
     @Operation(summary = "Create a block")
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<BlockResponseDTO> createBlock(@RequestBody @Valid final BlockDTO blockDTO) {
+    public ResponseEntity<BlockResponseDTO> createBlock(@RequestBody @Valid final BlockRequestDTO blockDTO) {
         final BlockResponseDTO block = blockService.createBlock(blockDTO);
 
         final URI location = UriComponentsBuilder.fromPath("/bookings/{id}")
@@ -50,7 +50,7 @@ public class BlockController {
 
     @Operation(summary = "Update a block")
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public BlockResponseDTO updateBlock(@PathVariable final Long id, @RequestBody @Valid final BlockDTO blockDTO) {
+    public BlockResponseDTO updateBlock(@PathVariable final Long id, @RequestBody @Valid final BlockRequestDTO blockDTO) {
         return blockService.updateBlock(id, blockDTO);
     }
 

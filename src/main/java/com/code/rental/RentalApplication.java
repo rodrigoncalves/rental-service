@@ -2,6 +2,7 @@ package com.code.rental;
 
 import com.code.rental.controller.dto.request.UserRequestDTO;
 import com.code.rental.domain.Property;
+import com.code.rental.domain.User;
 import com.code.rental.repository.PropertyRepository;
 import com.code.rental.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -46,11 +47,16 @@ public class RentalApplication {
                         .password("123456")
                         .build());
 
+                final User user3 = userService.getUserById(3L);
+                // for testing purposes
+                if (user3 == null) {
+                    return;
+                }
                 propertyRepository.save(Property.builder()
                         .name("Beach House")
                         .description("3 bedroom beach house")
                         .location("Miami Beach")
-                        .owner(userService.getUserById(3L))
+                        .owner(user3)
                         .build());
 
                 // owner2 has 2 properties

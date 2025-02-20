@@ -1,6 +1,6 @@
 package com.code.rental.controller.dto.request;
 
-import com.code.rental.controller.dto.validation.ValidDateRange;
+import com.code.rental.controller.dto.validation.BookingValidDateRange;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -16,7 +16,7 @@ import java.time.LocalDate;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@ValidDateRange
+@BookingValidDateRange
 public class BookingRequestDTO {
 
     @NotNull(message = "Property ID is required")

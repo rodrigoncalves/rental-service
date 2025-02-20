@@ -1,15 +1,15 @@
 package com.code.rental.controller.dto.validation;
 
-import com.code.rental.controller.dto.request.BookingRequestDTO;
+import com.code.rental.controller.dto.request.BlockRequestDTO;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
 import java.time.LocalDate;
 
-public class DateRangeValidator implements ConstraintValidator<ValidDateRange, BookingRequestDTO> {
+public class BlockDateRangeValidator implements ConstraintValidator<BlockValidDateRange, BlockRequestDTO> {
 
     @Override
-    public boolean isValid(BookingRequestDTO bookingRequestDTO, ConstraintValidatorContext context) {
+    public boolean isValid(BlockRequestDTO bookingRequestDTO, ConstraintValidatorContext context) {
         if (bookingRequestDTO.getStartDate() == null || bookingRequestDTO.getEndDate() == null) {
             return true; // Let @NotNull handle null cases
         }

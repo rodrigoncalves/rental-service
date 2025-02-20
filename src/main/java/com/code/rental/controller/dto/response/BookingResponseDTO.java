@@ -27,4 +27,8 @@ public class BookingResponseDTO {
 
     private Long guestId;
     private Long ownerId;
+
+    public BookingResponseDTO(Long id) {
+        this.id = id;
+    }
 }
