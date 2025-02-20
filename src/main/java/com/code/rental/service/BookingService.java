@@ -4,6 +4,7 @@ import com.code.rental.controller.dto.request.BookingRequestDTO;
 import com.code.rental.controller.dto.response.BookingResponseDTO;
 import com.code.rental.domain.Booking;
 import com.code.rental.domain.Property;
+import com.code.rental.domain.enums.BookingStatusEnum;
 import com.code.rental.repository.BookingRepository;
 import com.code.rental.repository.PropertyRepository;
 import com.code.rental.security.jwt.JwtService;
@@ -26,6 +27,13 @@ public class BookingService {
 
         if (property.getOwner().getId().equals(jwtService.getLoggedUser().getId())) {
             throw new IllegalArgumentException("You can't book your own property");
+        }
+
+        final boolean hasConflictingBookings = bookingRepository.existsByPropertyAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndStatus(
+                property, bookingDTO.getEndDate(), bookingDTO.getStartDate(), BookingStatusEnum.ACTIVE);
+
+        if (hasConflictingBookings) {
+            throw new IllegalArgumentException("Property is already booked for the selected dates");
         }
 
         final Booking booking = Booking.builder()
