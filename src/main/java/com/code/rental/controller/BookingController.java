@@ -18,7 +18,8 @@ import java.net.URI;
 @SecurityRequirement(name = "bearerAuth")
 @Validated
 @RequiredArgsConstructor
-@RestController("bookings")
+@RequestMapping("bookings")
+@RestController
 public class BookingController {
 
     private final BookingService bookingService;
@@ -61,7 +62,7 @@ public class BookingController {
     @Operation(summary = "Delete a booking from the system")
     @DeleteMapping(value = "/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
-        bookingService.delete(id);
+        bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
 }

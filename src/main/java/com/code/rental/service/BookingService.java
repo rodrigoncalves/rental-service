@@ -6,6 +6,7 @@ import com.code.rental.domain.Booking;
 import com.code.rental.domain.Property;
 import com.code.rental.domain.enums.BookingStatusEnum;
 import com.code.rental.exception.ResourceNotFoundException;
+import com.code.rental.repository.BlockRepository;
 import com.code.rental.repository.BookingRepository;
 import com.code.rental.repository.PropertyRepository;
 import com.code.rental.security.jwt.JwtService;
@@ -13,12 +14,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+
 @RequiredArgsConstructor
 @Service
 public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final PropertyRepository propertyRepository;
+    private final BlockRepository blockRepository;
     private final JwtService jwtService;
 
     @Transactional
@@ -30,12 +34,7 @@ public class BookingService {
             throw new IllegalArgumentException("You can't book your own property");
         }
 
-        final boolean hasConflictingBookings = bookingRepository.existsByPropertyAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndStatus(
-                property, bookingDTO.getEndDate(), bookingDTO.getStartDate(), BookingStatusEnum.ACTIVE);
-
-        if (hasConflictingBookings) {
-            throw new IllegalArgumentException("Property is already booked for the selected dates");
-        }
+        checkForConflictsBookingsAndBlocks(property, bookingDTO.getStartDate(), bookingDTO.getEndDate());
 
         final Booking booking = Booking.builder()
                 .property(property)
@@ -56,7 +55,7 @@ public class BookingService {
         final Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Booking.class, id));
 
-        if (!booking.getGuest().getId().equals(jwtService.getLoggedUser().getId())) {
+        if (!booking.getGuest().equals(jwtService.getLoggedUser())) {
             throw new IllegalArgumentException("You can't update a booking that you didn't create");
         }
 
@@ -83,7 +82,7 @@ public class BookingService {
         final Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(Booking.class, id));
 
-        if (!booking.getGuest().getId().equals(jwtService.getLoggedUser().getId())) {
+        if (!booking.getGuest().equals(jwtService.getLoggedUser())) {
             throw new IllegalArgumentException("You can't cancel a booking that you didn't create");
         }
 
@@ -99,22 +98,38 @@ public class BookingService {
             throw new IllegalArgumentException("You can't reactive a booking that you didn't create");
         }
 
-        final boolean hasConflictingBookings = bookingRepository.existsByPropertyAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndStatus(
-                booking.getProperty(), booking.getEndDate(), booking.getStartDate(), BookingStatusEnum.ACTIVE);
-
-        if (hasConflictingBookings) {
-            throw new IllegalArgumentException("Property is already booked for the selected dates");
-        }
+        this.checkForConflictsBookingsAndBlocks(booking.getProperty(), booking.getStartDate(), booking.getEndDate());
 
         booking.setStatus(BookingStatusEnum.ACTIVE);
     }
 
     @Transactional
-    public void delete(final Long id) {
-        if (!bookingRepository.existsById(id)) {
-            throw new ResourceNotFoundException(Booking.class, id);
+    public void deleteBooking(final Long id) {
+        final Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(Booking.class, id));
+
+        if (!booking.getGuest().equals(jwtService.getLoggedUser())) {
+            throw new IllegalArgumentException("You can't delete a booking that you didn't create");
         }
-        bookingRepository.deleteById(id);
+
+        bookingRepository.delete(booking);
+    }
+
+    private void checkForConflictsBookingsAndBlocks(final Property property, final LocalDate startDate, final LocalDate endDate) {
+        final BookingStatusEnum status = BookingStatusEnum.ACTIVE;
+        final boolean hasConflictingBookings = bookingRepository
+                .existsByPropertyAndStartDateLessThanEqualAndEndDateGreaterThanEqualAndStatus(property, startDate, endDate, status);
+
+        if (hasConflictingBookings) {
+            throw new IllegalArgumentException("Property is already booked for the selected dates");
+        }
+
+        final boolean hasConflictingBlocks = blockRepository
+                .existsByPropertyAndStartDateLessThanEqualAndEndDateGreaterThanEqual(property, startDate, endDate);
+
+        if (hasConflictingBlocks) {
+            throw new IllegalArgumentException("Property is blocked for the selected dates");
+        }
     }
 
     private BookingResponseDTO mapToDTO(final Booking booking) {

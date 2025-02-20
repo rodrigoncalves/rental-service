@@ -35,10 +35,10 @@ public class Booking {
     private BookingStatusEnum status = BookingStatusEnum.ACTIVE;
 
     @Column(nullable = false)
-    private LocalDate endDate;
+    private LocalDate startDate;
 
     @Column(nullable = false)
-    private LocalDate startDate;
+    private LocalDate endDate;
 
     @ManyToOne
     @JoinColumn(nullable = false, name = "property_id")
