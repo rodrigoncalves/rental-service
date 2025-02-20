@@ -7,11 +7,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
@@ -26,7 +25,7 @@ public class BookingController {
     private final BookingService bookingService;
 
     @Operation(summary = "Create a new booking for a property")
-    @PostMapping
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<BookingResponseDTO> createBooking(@RequestBody @Valid BookingRequestDTO bookingDTO) {
         final BookingResponseDTO bookingResponseDTO = bookingService.createBooking(bookingDTO);
 
@@ -34,5 +33,11 @@ public class BookingController {
                 .buildAndExpand(bookingResponseDTO.getId()).toUri();
 
         return ResponseEntity.created(location).body(bookingResponseDTO);
+    }
+
+    @Operation(summary = "Update a booking")
+    @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public BookingResponseDTO updateBooking(@PathVariable Long id, @RequestBody @Valid BookingRequestDTO bookingDTO) {
+        return bookingService.updateBooking(id, bookingDTO);
     }
 }
