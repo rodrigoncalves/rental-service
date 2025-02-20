@@ -4,7 +4,9 @@ import com.code.rental.exception.BadRequestException;
 import com.code.rental.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -29,6 +31,12 @@ public class GlobalExceptionHandler {
         return buildErrorResponse("Unauthorized access", HttpStatus.UNAUTHORIZED);
     }
 
+    // 401 Unauthorized
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<Object> handleUnauthorized(AuthenticationException ex, WebRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED);
+    }
+
     // 403 Forbidden
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<Object> handleForbidden(AccessDeniedException ex, WebRequest request) {
@@ -41,12 +49,19 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND);
     }
 
+    // 422 Unprocessable Entity
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Object> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+    }
+
     // 500 Internal Server Error
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGlobalException(Exception ex, WebRequest request) {
         return buildErrorResponse("An unexpected error occurred", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    // 400 Bad Request (for validation errors)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Object> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -61,6 +76,12 @@ public class GlobalExceptionHandler {
         body.put("messages", errors);
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    // 400 Bad Request (for invalid request body)
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     // Common method to build structured error response

@@ -1,6 +1,8 @@
 package com.code.rental;
 
 import com.code.rental.controller.dto.request.UserRequestDTO;
+import com.code.rental.domain.Property;
+import com.code.rental.repository.PropertyRepository;
 import com.code.rental.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -11,7 +13,9 @@ import org.springframework.context.annotation.Bean;
 @RequiredArgsConstructor
 @SpringBootApplication
 public class RentalApplication {
+
     private final UserService userService;
+    private final PropertyRepository propertyRepository;
 
     public static void main(String[] args) {
         SpringApplication.run(RentalApplication.class, args);
@@ -40,6 +44,27 @@ public class RentalApplication {
                         .name("owner2")
                         .email("owner2@gmail.com")
                         .password("123456")
+                        .build());
+
+                propertyRepository.save(Property.builder()
+                        .name("Beach House")
+                        .description("3 bedroom beach house")
+                        .location("Miami Beach")
+                        .owner(userService.getUserById(3L))
+                        .build());
+
+                // owner2 has 2 properties
+                propertyRepository.save(Property.builder()
+                        .name("Mountain Cabin")
+                        .description("2 bedroom mountain cabin")
+                        .location("Aspen")
+                        .owner(userService.getUserById(4L))
+                        .build());
+                propertyRepository.save(Property.builder()
+                        .name("City Loft")
+                        .description("1 bedroom city loft")
+                        .location("New York City")
+                        .owner(userService.getUserById(4L))
                         .build());
             }
         };
