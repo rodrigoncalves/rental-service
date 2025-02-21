@@ -1,7 +1,9 @@
 package com.code.rental.controller;
 
 import com.code.rental.controller.dto.response.BookingResponseDTO;
+import com.code.rental.domain.Booking;
 import com.code.rental.exception.ConflictException;
+import com.code.rental.exception.ResourceNotFoundException;
 import com.code.rental.security.jwt.JwtProvider;
 import com.code.rental.service.BookingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,6 +93,16 @@ public class BookingControllerTest {
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void getNonExistingBookingShouldReturn404() throws Exception {
+        when(bookingService.getBookingById(anyLong())).thenThrow(new ResourceNotFoundException(Booking.class, 1L));
+
+        mockMvc.perform(get("/bookings/1")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
     }
 
     @Test

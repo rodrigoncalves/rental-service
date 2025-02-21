@@ -64,6 +64,33 @@ public class BlockControllerTest {
     }
 
     @Test
+    void createBlockWithInvalidDateRangeShouldReturn400() throws Exception {
+        mockMvc.perform(post("/blocks")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"propertyId\":1,\"startDate\":\"2026-01-02\",\"endDate\":\"2026-01-01\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createBlockWithStartDateInThePastShouldReturn400() throws Exception {
+        mockMvc.perform(post("/blocks")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"propertyId\":1,\"startDate\":\"2020-01-01\",\"endDate\":\"2026-01-01\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createBlockWithInvalidPropertyIdShouldReturn422() throws Exception {
+        mockMvc.perform(post("/blocks")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"propertyId\":0,\"startDate\":\"2026-01-01\",\"endDate\":\"2026-01-02\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void getProperyBlocksShouldReturn200() throws Exception {
         when(blockService.getBlocksByPropertyId(anyLong())).thenReturn(null);
 
