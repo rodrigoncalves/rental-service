@@ -10,6 +10,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.env.Environment;
+
+import java.util.Arrays;
 
 @RequiredArgsConstructor
 @SpringBootApplication
@@ -17,6 +20,7 @@ public class RentalServiceApplication {
 
     private final UserService userService;
     private final PropertyRepository propertyRepository;
+    private final Environment environment;
 
     public static void main(String[] args) {
         SpringApplication.run(RentalServiceApplication.class, args);
@@ -25,6 +29,10 @@ public class RentalServiceApplication {
     @Bean
     CommandLineRunner runner() {
         return args -> {
+            // do not run if tests
+            if (Arrays.asList(environment.getActiveProfiles()).contains("test")) {
+                return;
+            }
             if (userService.getAllUsers().isEmpty()) {
                 userService.createUser(UserRequestDTO.builder()
                         .name("guest1")
@@ -47,16 +55,11 @@ public class RentalServiceApplication {
                         .password("123456")
                         .build());
 
-                final User user3 = userService.getUserById(3L);
-                // for testing purposes
-                if (user3 == null) {
-                    return;
-                }
                 propertyRepository.save(Property.builder()
                         .name("Beach House")
                         .description("3 bedroom beach house")
                         .location("Miami Beach")
-                        .owner(user3)
+                        .owner(userService.getUserById(3L))
                         .build());
 
                 // owner2 has 2 properties

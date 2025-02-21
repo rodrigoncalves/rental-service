@@ -4,6 +4,7 @@ import com.code.rental.controller.dto.request.BlockRequestDTO;
 import com.code.rental.controller.dto.response.BlockResponseDTO;
 import com.code.rental.domain.Block;
 import com.code.rental.domain.Property;
+import com.code.rental.exception.ConflictException;
 import com.code.rental.exception.ResourceNotFoundException;
 import com.code.rental.repository.BlockRepository;
 import com.code.rental.repository.PropertyRepository;
@@ -36,7 +37,7 @@ public class BlockService {
                 .orElseThrow(() -> new IllegalArgumentException("Property not found with ID " + blockDTO.getPropertyId()));
 
         if (!property.getOwner().getId().equals(jwtService.getLoggedUser().getId())) {
-            throw new IllegalArgumentException("You can't block a property that you don't own");
+            throw new ConflictException("You can't block a property that you don't own");
         }
 
         final Block block = Block.builder()
@@ -60,7 +61,7 @@ public class BlockService {
                 .orElseThrow(() -> new ResourceNotFoundException(Block.class, id));
 
         if (!block.getProperty().getOwner().equals(jwtService.getLoggedUser())) {
-            throw new IllegalArgumentException("You can't update a block that you don't own");
+            throw new ConflictException("You can't update a block that you don't own");
         }
 
         block.setStartDate(blockDTO.getStartDate());
@@ -75,7 +76,7 @@ public class BlockService {
                 .orElseThrow(() -> new ResourceNotFoundException(Block.class, id));
 
         if (!block.getProperty().getOwner().equals(jwtService.getLoggedUser())) {
-            throw new IllegalArgumentException("You can't delete a block that you don't own");
+            throw new ConflictException("You can't delete a block that you don't own");
         }
 
         blockRepository.delete(block);
@@ -83,6 +84,7 @@ public class BlockService {
 
     private BlockResponseDTO mapToDTO(final Block block) {
         return BlockResponseDTO.builder()
+                .id(block.getId())
                 .ownerId(block.getProperty().getOwner().getId())
                 .propertyId(block.getProperty().getId())
                 .startDate(block.getStartDate())

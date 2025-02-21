@@ -1,6 +1,7 @@
 package com.code.rental.controller;
 
 import com.code.rental.controller.dto.response.BookingResponseDTO;
+import com.code.rental.exception.ConflictException;
 import com.code.rental.security.jwt.JwtProvider;
 import com.code.rental.service.BookingService;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,6 +52,35 @@ public class BookingControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"propertyId\":1,\"startDate\":\"2026-01-01\",\"endDate\":\"2026-01-02\"}"))
                 .andExpect(status().isCreated());
+    }
+
+    @Test
+    void createBookingWithBlockedPropertyShouldReturn409() throws Exception {
+        when(bookingService.createBooking(any())).thenThrow(new ConflictException("Property is blocked for the selected dates"));
+
+        mockMvc.perform(post("/bookings")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"propertyId\":1,\"startDate\":\"2026-01-01\",\"endDate\":\"2026-01-02\"}"))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void createBookingWithInvalidDateRangeShouldReturn400() throws Exception {
+        mockMvc.perform(post("/bookings")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"propertyId\":1,\"startDate\":\"2026-01-02\",\"endDate\":\"2026-01-01\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createBookingWithStartDateInThePastShouldReturn400() throws Exception {
+        mockMvc.perform(post("/bookings")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"propertyId\":1,\"startDate\":\"2020-01-01\",\"endDate\":\"2020-01-02\"}"))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
