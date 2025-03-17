@@ -609,4 +609,53 @@ public class BookingServiceTest {
         assertThat(ex.getMessage()).isEqualTo("You can't update a booking that you didn't create");
     }
 
+    @Test
+    void shouldCreateBookingEvenWithExistingNonOverlappingBlock() {
+        when(jwtService.getLoggedUser()).thenReturn(owner);
+        final BlockRequestDTO blockDTO = BlockRequestDTO.builder()
+                .propertyId(1L)
+                .startDate(LocalDate.parse("2025-06-01"))
+                .endDate(LocalDate.parse("2025-06-10"))
+                .build();
+        blockService.createBlock(blockDTO);
+
+        when(jwtService.getLoggedUser()).thenReturn(guest);
+        final BookingRequestDTO bookingDTO = BookingRequestDTO.builder()
+                .propertyId(1L)
+                .startDate(LocalDate.parse("2025-06-20"))
+                .endDate(LocalDate.parse("2025-06-30"))
+                .build();
+
+        final BookingResponseDTO bookingResponseDTO = bookingService.createBooking(bookingDTO);
+        assertThat(bookingResponseDTO).isNotNull();
+        assertThat(bookingResponseDTO.getId()).isEqualTo(1L);
+        assertThat(bookingResponseDTO.getOwnerId()).isEqualTo(owner.getId());
+        assertThat(bookingResponseDTO.getGuestId()).isEqualTo(guest.getId());
+        assertThat(bookingResponseDTO.getPropertyId()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldCreateBookingEvenWithExistingNonOverlappingBooking() {
+        final BookingRequestDTO bookingDTO = BookingRequestDTO.builder()
+                .propertyId(1L)
+                .startDate(LocalDate.parse("2025-06-01"))
+                .endDate(LocalDate.parse("2025-06-10"))
+                .build();
+
+        bookingService.createBooking(bookingDTO);
+
+        final BookingRequestDTO newBookingDTO = BookingRequestDTO.builder()
+                .propertyId(1L)
+                .startDate(LocalDate.parse("2025-06-20"))
+                .endDate(LocalDate.parse("2025-06-30"))
+                .build();
+
+        final BookingResponseDTO bookingResponseDTO = bookingService.createBooking(newBookingDTO);
+        assertThat(bookingResponseDTO).isNotNull();
+        assertThat(bookingResponseDTO.getId()).isEqualTo(2L);
+        assertThat(bookingResponseDTO.getOwnerId()).isEqualTo(owner.getId());
+        assertThat(bookingResponseDTO.getGuestId()).isEqualTo(guest.getId());
+        assertThat(bookingResponseDTO.getPropertyId()).isEqualTo(1L);
+    }
+
 }

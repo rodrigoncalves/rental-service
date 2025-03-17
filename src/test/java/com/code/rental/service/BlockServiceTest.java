@@ -313,4 +313,53 @@ public class BlockServiceTest {
         List<BlockResponseDTO> blocks = blockService.getBlocksByPropertyId(property.getId());
         assertThat(blocks).isEmpty();
     }
+
+    @Test
+    void shouldCreateBlockEvenWithExistingNonOverlappingBlock() {
+        // create block
+        when(jwtService.getLoggedUser()).thenReturn(owner);
+        BlockRequestDTO blockDTO = BlockRequestDTO.builder()
+                .propertyId(property.getId())
+                .startDate(LocalDate.parse("2025-06-01"))
+                .endDate(LocalDate.parse("2025-06-10"))
+                .build();
+        blockService.createBlock(blockDTO);
+
+        // create block
+        blockDTO = BlockRequestDTO.builder()
+                .propertyId(property.getId())
+                .startDate(LocalDate.parse("2025-06-11"))
+                .endDate(LocalDate.parse("2025-06-20"))
+                .build();
+        BlockResponseDTO blockResponseDTO = blockService.createBlock(blockDTO);
+
+        assertThat(blockResponseDTO).isNotNull();
+        assertThat(blockResponseDTO.getPropertyId()).isEqualTo(property.getId());
+        assertThat(blockResponseDTO.getOwnerId()).isEqualTo(owner.getId());
+    }
+
+    @Test
+    void shouldCreateBlockEvenWithExistingNonOverlappingBooking() {
+        // create booking
+        when(jwtService.getLoggedUser()).thenReturn(guest);
+        BookingRequestDTO bookingRequestDTO = BookingRequestDTO.builder()
+                .propertyId(property.getId())
+                .startDate(LocalDate.parse("2025-06-01"))
+                .endDate(LocalDate.parse("2025-06-10"))
+                .build();
+        bookingService.createBooking(bookingRequestDTO);
+
+        // create block
+        when(jwtService.getLoggedUser()).thenReturn(owner);
+        BlockRequestDTO blockDTO = BlockRequestDTO.builder()
+                .propertyId(property.getId())
+                .startDate(LocalDate.parse("2025-06-11"))
+                .endDate(LocalDate.parse("2025-06-20"))
+                .build();
+        BlockResponseDTO blockResponseDTO = blockService.createBlock(blockDTO);
+
+        assertThat(blockResponseDTO).isNotNull();
+        assertThat(blockResponseDTO.getPropertyId()).isEqualTo(property.getId());
+        assertThat(blockResponseDTO.getOwnerId()).isEqualTo(owner.getId());
+    }
 }
