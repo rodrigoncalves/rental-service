@@ -3,12 +3,13 @@ package com.code.rental.service;
 import com.code.rental.controller.dto.request.BlockRequestDTO;
 import com.code.rental.controller.dto.request.BookingRequestDTO;
 import com.code.rental.controller.dto.response.BlockResponseDTO;
-import com.code.rental.domain.Block;
+import com.code.rental.domain.AvailabilityEntry;
+import com.code.rental.domain.AvailabilityEntryFactory;
 import com.code.rental.domain.Property;
 import com.code.rental.domain.User;
 import com.code.rental.exception.ConflictException;
 import com.code.rental.exception.ResourceNotFoundException;
-import com.code.rental.repository.BlockRepository;
+import com.code.rental.repository.AvailabilityRepository;
 import com.code.rental.repository.PropertyRepository;
 import com.code.rental.repository.UserRepository;
 import com.code.rental.security.jwt.JwtService;
@@ -42,7 +43,7 @@ public class BlockServiceTest {
     private BookingService bookingService;
 
     @Autowired
-    private BlockRepository blockRepository;
+    private AvailabilityRepository availabilityRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -177,11 +178,10 @@ public class BlockServiceTest {
 
     @Test
     void shouldUpdateBlock() {
-        Block block = blockRepository.save(Block.builder()
-                .property(property)
-                .startDate(LocalDate.parse("2025-06-01"))
-                .endDate(LocalDate.parse("2025-06-10"))
-                .build());
+        AvailabilityEntry block = availabilityRepository.save(AvailabilityEntryFactory.createBlock(
+                property,
+                LocalDate.parse("2025-06-01"),
+                LocalDate.parse("2025-06-10")));
 
         BlockRequestDTO blockDTO = BlockRequestDTO.builder()
                 .startDate(LocalDate.parse("2025-06-02"))
@@ -213,11 +213,10 @@ public class BlockServiceTest {
 
     @Test
     void shouldThrowUpdateIfNotPropertyOwner() {
-        Block block = blockRepository.save(Block.builder()
-                .property(property)
-                .startDate(LocalDate.parse("2025-06-01"))
-                .endDate(LocalDate.parse("2025-06-10"))
-                .build());
+        AvailabilityEntry block = availabilityRepository.save(AvailabilityEntryFactory.createBlock(
+                property,
+                        LocalDate.parse("2025-06-01"),
+                        LocalDate.parse("2025-06-10")));
 
         BlockRequestDTO blockDTO = BlockRequestDTO.builder()
                 .startDate(LocalDate.parse("2025-06-02"))
@@ -235,11 +234,10 @@ public class BlockServiceTest {
 
     @Test
     void shouldDeleteBlock() {
-        Block block = blockRepository.save(Block.builder()
-                .property(property)
-                .startDate(LocalDate.parse("2025-06-01"))
-                .endDate(LocalDate.parse("2025-06-10"))
-                .build());
+        AvailabilityEntry block = availabilityRepository.save(AvailabilityEntryFactory.createBlock(
+                property,
+                LocalDate.parse("2025-06-01"),
+                LocalDate.parse("2025-06-10")));
 
         when(jwtService.getLoggedUser()).thenReturn(owner);
 
@@ -265,11 +263,10 @@ public class BlockServiceTest {
 
     @Test
     void shouldThrowDeleteIfNotPropertyOwner() {
-        Block block = blockRepository.save(Block.builder()
-                .property(property)
-                .startDate(LocalDate.parse("2025-06-01"))
-                .endDate(LocalDate.parse("2025-06-10"))
-                .build());
+        AvailabilityEntry block = availabilityRepository.save(AvailabilityEntryFactory.createBlock(
+                property,
+                LocalDate.parse("2025-06-01"),
+                LocalDate.parse("2025-06-10")));
 
         when(jwtService.getLoggedUser()).thenReturn(guest);
 
@@ -307,7 +304,7 @@ public class BlockServiceTest {
                     .endDate(LocalDate.parse(dateRange.get(1)))
                     .build();
             ConflictException ex = assertThrows(ConflictException.class, () -> blockService.createBlock(blockDTO));
-            assertThat(ex.getMessage()).isEqualTo("There is an active booking conflict with the block dates");
+            assertThat(ex.getMessage()).isEqualTo("Cannot block property for the selected dates");
         });
 
         List<BlockResponseDTO> blocks = blockService.getBlocksByPropertyId(property.getId());
@@ -361,5 +358,29 @@ public class BlockServiceTest {
         assertThat(blockResponseDTO).isNotNull();
         assertThat(blockResponseDTO.getPropertyId()).isEqualTo(property.getId());
         assertThat(blockResponseDTO.getOwnerId()).isEqualTo(owner.getId());
+    }
+
+    @Test
+    void shouldNotAllowOverlappingBlocks() {
+        // create block
+        when(jwtService.getLoggedUser()).thenReturn(owner);
+        BlockRequestDTO blockDTO = BlockRequestDTO.builder()
+                .propertyId(property.getId())
+                .startDate(LocalDate.parse("2025-06-01"))
+                .endDate(LocalDate.parse("2025-06-10"))
+                .build();
+        blockService.createBlock(blockDTO);
+
+        // create overlapping block
+        final BlockRequestDTO anotherBlockDTO = BlockRequestDTO.builder()
+                .propertyId(property.getId())
+                .startDate(LocalDate.parse("2025-06-05"))
+                .endDate(LocalDate.parse("2025-06-15"))
+                .build();
+        ConflictException ex = assertThrows(ConflictException.class, () -> blockService.createBlock(anotherBlockDTO));
+        assertThat(ex.getMessage()).isEqualTo("Cannot block property for the selected dates");
+
+        List<BlockResponseDTO> blocks = blockService.getBlocksByPropertyId(property.getId());
+        assertThat(blocks).hasSize(1);
     }
 }

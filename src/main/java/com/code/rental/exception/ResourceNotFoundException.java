@@ -14,4 +14,8 @@ public class ResourceNotFoundException extends RuntimeException {
     public ResourceNotFoundException(final Class clazz, final String param) {
         super(clazz.getSimpleName() + " not found with param " + param);
     }
+
+    public ResourceNotFoundException(final String className, final Long id) {
+        super(className + " not found with ID " + id);
+    }
 }

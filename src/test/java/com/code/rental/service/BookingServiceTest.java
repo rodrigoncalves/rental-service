@@ -163,7 +163,7 @@ public class BookingServiceTest {
                     .endDate(LocalDate.parse("2025-06-15"))
                     .build());
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is already booked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
 
         ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(BookingRequestDTO.builder()
@@ -172,7 +172,7 @@ public class BookingServiceTest {
                     .endDate(LocalDate.parse("2025-06-05"))
                     .build());
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is already booked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
 
         ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(BookingRequestDTO.builder()
@@ -181,7 +181,7 @@ public class BookingServiceTest {
                     .endDate(LocalDate.parse("2025-06-01"))
                     .build());
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is already booked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
 
         ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(BookingRequestDTO.builder()
@@ -190,7 +190,7 @@ public class BookingServiceTest {
                     .endDate(LocalDate.parse("2025-06-10"))
                     .build());
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is already booked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
 
         ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(BookingRequestDTO.builder()
@@ -199,7 +199,7 @@ public class BookingServiceTest {
                     .endDate(LocalDate.parse("2025-06-01"))
                     .build());
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is already booked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
 
         ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(BookingRequestDTO.builder()
@@ -208,7 +208,7 @@ public class BookingServiceTest {
                     .endDate(LocalDate.parse("2025-06-01"))
                     .build());
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is already booked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -232,7 +232,7 @@ public class BookingServiceTest {
         final ConflictException ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(bookingDTO);
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is blocked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -256,7 +256,7 @@ public class BookingServiceTest {
         final ConflictException ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(bookingDTO);
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is blocked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -280,7 +280,7 @@ public class BookingServiceTest {
         final ConflictException ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(bookingDTO);
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is blocked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -304,7 +304,7 @@ public class BookingServiceTest {
         final ConflictException ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(bookingDTO);
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is blocked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -328,11 +328,11 @@ public class BookingServiceTest {
         final ConflictException ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(bookingDTO);
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is blocked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
-    void shouldThrowIfBookingOverlapsWithMultipleBlocks() {
+    void shouldNotAllowThrowIfBookingOverlapsWithMultipleBlocks() {
         when(jwtService.getLoggedUser()).thenReturn(owner);
         final BlockRequestDTO blockDTO1 = BlockRequestDTO.builder()
                 .propertyId(1L)
@@ -343,7 +343,7 @@ public class BookingServiceTest {
 
         final BlockRequestDTO blockDTO2 = BlockRequestDTO.builder()
                 .propertyId(1L)
-                .startDate(LocalDate.parse("2025-06-04"))
+                .startDate(LocalDate.parse("2025-06-06"))
                 .endDate(LocalDate.parse("2025-06-10"))
                 .build();
         blockService.createBlock(blockDTO2);
@@ -359,7 +359,7 @@ public class BookingServiceTest {
         final ConflictException ex = assertThrows(ConflictException.class, () -> {
             bookingService.createBooking(bookingDTO);
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is blocked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -470,7 +470,7 @@ public class BookingServiceTest {
             bookingService.reactiveBooking(1L);
         });
 
-        assertThat(ex.getMessage()).isEqualTo("Property is already booked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -498,7 +498,7 @@ public class BookingServiceTest {
         final ConflictException ex = assertThrows(ConflictException.class, () -> {
             bookingService.reactiveBooking(1L);
         });
-        assertThat(ex.getMessage()).isEqualTo("Property is blocked for the selected dates");
+        assertThat(ex.getMessage()).isEqualTo("Property is not available for the selected dates");
     }
 
     @Test
@@ -628,7 +628,7 @@ public class BookingServiceTest {
 
         final BookingResponseDTO bookingResponseDTO = bookingService.createBooking(bookingDTO);
         assertThat(bookingResponseDTO).isNotNull();
-        assertThat(bookingResponseDTO.getId()).isEqualTo(1L);
+        assertThat(bookingResponseDTO.getId()).isEqualTo(2L);
         assertThat(bookingResponseDTO.getOwnerId()).isEqualTo(owner.getId());
         assertThat(bookingResponseDTO.getGuestId()).isEqualTo(guest.getId());
         assertThat(bookingResponseDTO.getPropertyId()).isEqualTo(1L);
@@ -653,6 +653,39 @@ public class BookingServiceTest {
         final BookingResponseDTO bookingResponseDTO = bookingService.createBooking(newBookingDTO);
         assertThat(bookingResponseDTO).isNotNull();
         assertThat(bookingResponseDTO.getId()).isEqualTo(2L);
+        assertThat(bookingResponseDTO.getOwnerId()).isEqualTo(owner.getId());
+        assertThat(bookingResponseDTO.getGuestId()).isEqualTo(guest.getId());
+        assertThat(bookingResponseDTO.getPropertyId()).isEqualTo(1L);
+    }
+
+    @Test
+    void shouldCreateBookingEvenWithExistingNonOverlappingBookingAndBlock() {
+        final BookingRequestDTO bookingDTO = BookingRequestDTO.builder()
+                .propertyId(1L)
+                .startDate(LocalDate.parse("2025-06-01"))
+                .endDate(LocalDate.parse("2025-06-10"))
+                .build();
+
+        bookingService.createBooking(bookingDTO);
+
+        when(jwtService.getLoggedUser()).thenReturn(owner);
+        final BlockRequestDTO blockDTO = BlockRequestDTO.builder()
+                .propertyId(1L)
+                .startDate(LocalDate.parse("2025-06-20"))
+                .endDate(LocalDate.parse("2025-06-30"))
+                .build();
+        blockService.createBlock(blockDTO);
+
+        when(jwtService.getLoggedUser()).thenReturn(guest);
+        final BookingRequestDTO newBookingDTO = BookingRequestDTO.builder()
+                .propertyId(1L)
+                .startDate(LocalDate.parse("2025-07-20"))
+                .endDate(LocalDate.parse("2025-07-30"))
+                .build();
+
+        final BookingResponseDTO bookingResponseDTO = bookingService.createBooking(newBookingDTO);
+        assertThat(bookingResponseDTO).isNotNull();
+        assertThat(bookingResponseDTO.getId()).isEqualTo(3L);
         assertThat(bookingResponseDTO.getOwnerId()).isEqualTo(owner.getId());
         assertThat(bookingResponseDTO.getGuestId()).isEqualTo(guest.getId());
         assertThat(bookingResponseDTO.getPropertyId()).isEqualTo(1L);
