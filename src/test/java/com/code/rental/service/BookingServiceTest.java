@@ -154,7 +154,6 @@ public class BookingServiceTest {
                 .endDate(LocalDate.parse("2025-06-10"))
                 .build();
 
-
         bookingService.createBooking(bookingDTO);
 
         ConflictException ex = assertThrows(ConflictException.class, () -> {

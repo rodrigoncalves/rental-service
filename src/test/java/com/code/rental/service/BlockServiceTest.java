@@ -1,6 +1,7 @@
 package com.code.rental.service;
 
 import com.code.rental.controller.dto.request.BlockRequestDTO;
+import com.code.rental.controller.dto.request.BookingRequestDTO;
 import com.code.rental.controller.dto.response.BlockResponseDTO;
 import com.code.rental.domain.Block;
 import com.code.rental.domain.Property;
@@ -36,6 +37,9 @@ public class BlockServiceTest {
 
     @Autowired
     private BlockService blockService;
+
+    @Autowired
+    private BookingService bookingService;
 
     @Autowired
     private BlockRepository blockRepository;
@@ -274,5 +278,39 @@ public class BlockServiceTest {
         });
 
         assertThat(ex.getMessage()).isEqualTo("You can't delete a block that you don't own");
+    }
+
+    @Test
+    void shouldNotBlockIfThereIsAnExistingBooking() {
+        // create booking
+        when(jwtService.getLoggedUser()).thenReturn(guest);
+        BookingRequestDTO bookingRequestDTO = BookingRequestDTO.builder()
+                .propertyId(property.getId())
+                .startDate(LocalDate.parse("2025-06-01"))
+                .endDate(LocalDate.parse("2025-06-10"))
+                .build();
+
+        bookingService.createBooking(bookingRequestDTO);
+
+        // create block
+        when(jwtService.getLoggedUser()).thenReturn(owner);
+        final List<List<String>> dateRanges = List.of(
+                List.of("2025-06-01", "2025-06-01"),
+                List.of("2025-06-10", "2025-06-20"),
+                List.of("2025-06-05", "2025-06-15"),
+                List.of("2025-05-20", "2025-06-05"));
+
+        dateRanges.forEach(dateRange -> {
+            BlockRequestDTO blockDTO = BlockRequestDTO.builder()
+                    .propertyId(property.getId())
+                    .startDate(LocalDate.parse(dateRange.get(0)))
+                    .endDate(LocalDate.parse(dateRange.get(1)))
+                    .build();
+            ConflictException ex = assertThrows(ConflictException.class, () -> blockService.createBlock(blockDTO));
+            assertThat(ex.getMessage()).isEqualTo("There is an active booking conflict with the block dates");
+        });
+
+        List<BlockResponseDTO> blocks = blockService.getBlocksByPropertyId(property.getId());
+        assertThat(blocks).isEmpty();
     }
 }
