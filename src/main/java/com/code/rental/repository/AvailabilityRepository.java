@@ -33,6 +33,7 @@ public interface AvailabilityRepository extends JpaRepository<AvailabilityEntry,
             """)
     List<AvailabilityEntry> findAllBlocksByPropertyId(Long propertyId);
 
+    // Had to use native query because JPQL doesn't support INSERT INTO ... SELECT ... WHERE
     @Modifying
     @Query(value = """
                 INSERT INTO availability_entry (version, property_id, type, status, start_date, end_date, guest_id, guest_name, guest_email, guest_phone)

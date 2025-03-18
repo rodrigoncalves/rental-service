@@ -17,9 +17,11 @@ import java.time.LocalDate;
 @Entity
 @Table(
         indexes = {
+                // add indexes for faster search
                 @Index(name = "idx_property_dates", columnList = "property_id, startDate, endDate")
         },
         uniqueConstraints = {
+                // add unique constraints to avoid duplicates
                 @UniqueConstraint(columnNames = {"property_id", "type", "startDate", "endDate", "status"})
         }
 )

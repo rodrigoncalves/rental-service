@@ -3,6 +3,7 @@ package com.code.rental.exception.handler;
 import com.code.rental.exception.BadRequestException;
 import com.code.rental.exception.ConflictException;
 import com.code.rental.exception.ResourceNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -55,6 +56,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<Object> handleConflict(ConflictException ex, WebRequest request) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Object> handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
+        return buildErrorResponse("Property is not available for the selected dates", HttpStatus.CONFLICT);
     }
 
     // 422 Unprocessable Entity

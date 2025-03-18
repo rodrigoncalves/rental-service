@@ -11,7 +11,6 @@ import com.code.rental.repository.AvailabilityRepository;
 import com.code.rental.repository.PropertyRepository;
 import com.code.rental.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,29 +37,22 @@ public class BookingService {
             throw new ConflictException("Property is not available for the selected dates");
         }
 
-        try {
-            boolean isCreated = availabilityRepository.insertIfNoConflict(
-                    bookingDTO.getPropertyId(),
-                    bookingDTO.getStartDate(),
-                    bookingDTO.getEndDate(),
-                    jwtService.getLoggedUser().getId(),
-                    bookingDTO.getGuestName(),
-                    bookingDTO.getGuestEmail(),
-                    bookingDTO.getGuestPhone()) > 0;
-            if (!isCreated) {
-                throw new ConflictException("Property is not available for the selected dates");
-            }
+        // it can throw DataIntegrityViolationException if there is a conflict due a race condition
+        availabilityRepository.insertIfNoConflict(
+                bookingDTO.getPropertyId(),
+                bookingDTO.getStartDate(),
+                bookingDTO.getEndDate(),
+                jwtService.getLoggedUser().getId(),
+                bookingDTO.getGuestName(),
+                bookingDTO.getGuestEmail(),
+                bookingDTO.getGuestPhone());
 
-            return mapToDTO(availabilityRepository.findSavedBooking(
-                    bookingDTO.getPropertyId(),
-                    jwtService.getLoggedUser().getId(),
-                    bookingDTO.getStartDate(),
-                    bookingDTO.getEndDate()
-            ));
-        } catch (DataIntegrityViolationException e) {
-            // Handle unique contraint violation
-            throw new ConflictException("Property is not available for the selected dates");
-        }
+        return mapToDTO(availabilityRepository.findSavedBooking(
+                bookingDTO.getPropertyId(),
+                jwtService.getLoggedUser().getId(),
+                bookingDTO.getStartDate(),
+                bookingDTO.getEndDate()
+        ));
     }
 
     @Transactional

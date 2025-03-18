@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -114,7 +115,6 @@ public class ConcurrencyTest {
         for (int i = 0; i < threadCount; i++) {
             int finalI = i;
             executor.submit(() -> {
-                try {
                     when(jwtService.getLoggedUser()).thenReturn(guests.get(finalI));
                     BookingRequestDTO bookingRequestDTO = BookingRequestDTO.builder()
                             .startDate(startDate)
@@ -122,10 +122,8 @@ public class ConcurrencyTest {
                             .propertyId(property.getId())
                             .build();
 
-                    bookingService.createBooking(bookingRequestDTO);
-                } catch (Exception e) {
-                    System.out.println("Thread failed: " + e.getMessage());
-                }
+                    assertThatThrownBy(() -> bookingService.createBooking(bookingRequestDTO))
+                            .isInstanceOf(DataIntegrityViolationException.class);
             });
         }
 
