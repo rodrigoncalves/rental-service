@@ -2,9 +2,7 @@ package com.code.rental.repository;
 
 import com.code.rental.domain.AvailabilityEntry;
 import com.code.rental.domain.Property;
-import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -15,7 +13,6 @@ import java.util.List;
 @Repository
 public interface AvailabilityRepository extends JpaRepository<AvailabilityEntry, Long> {
 
-    @Lock(LockModeType.PESSIMISTIC_WRITE) // high performance impact by using pessimistic lock
     @Query("""
                 SELECT CASE WHEN COUNT(a) > 0 THEN TRUE ELSE FALSE END
                 FROM AvailabilityEntry a
