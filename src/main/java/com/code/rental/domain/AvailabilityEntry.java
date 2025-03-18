@@ -15,9 +15,14 @@ import java.time.LocalDate;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(indexes = {
-        @Index(name = "idx_property_dates", columnList = "property_id, startDate, endDate")
-})
+@Table(
+        indexes = {
+                @Index(name = "idx_property_dates", columnList = "property_id, startDate, endDate")
+        },
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"property_id", "type", "startDate", "endDate", "status"})
+        }
+)
 public class AvailabilityEntry {
 
     @Id
@@ -38,17 +43,18 @@ public class AvailabilityEntry {
     @Column(nullable = false)
     private LocalDate endDate;
 
+    @Builder.Default
+    @Enumerated(EnumType.STRING)
+    private BookingStatusEnum status = BookingStatusEnum.ACTIVE;
+
     @Version // optimistic locking
+    @Column(nullable = false)
     private Long version;
 
     // Fields only for BOOKING (nullable for BLOCK)
     @ManyToOne
     @JoinColumn(name = "guest_id")
     private User guest;
-
-    @Builder.Default
-    @Enumerated(EnumType.STRING)
-    private BookingStatusEnum status = BookingStatusEnum.ACTIVE;
 
     @Column(length = 255)
     private String guestName;
